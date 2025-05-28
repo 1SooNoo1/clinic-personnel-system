@@ -1,8 +1,10 @@
 package com.clinic.clinic_personnel_system.controllers;
 
 import com.clinic.clinic_personnel_system.dto.PositionDTO;
+import com.clinic.clinic_personnel_system.mapper.PositionMapper;
 import com.clinic.clinic_personnel_system.models.Position;
 import com.clinic.clinic_personnel_system.services.PositionService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -22,10 +24,12 @@ import java.util.List;
 public class PositionController {
 
     private final PositionService positionService;
+    private final PositionMapper positionMapper;
 
     @Autowired
-    public PositionController(PositionService positionService) {
+    public PositionController(PositionService positionService, PositionMapper positionMapper) {
         this.positionService = positionService;
+        this.positionMapper = positionMapper;
     }
 
     @GetMapping
@@ -38,8 +42,7 @@ public class PositionController {
     @Operation(summary = "Добавить новую должность")
     @ApiResponse(responseCode = "201", description = "Должность успешно создана")
     public ResponseEntity<Position> createPosition(@Valid @RequestBody PositionDTO dto) {
-        Position position = new Position();
-        position.setTitle(dto.getTitle());
+        Position position = positionMapper.toEntity(dto);
         Position saved = positionService.save(position);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
@@ -57,9 +60,11 @@ public class PositionController {
             @Parameter(description = "ID должности") @PathVariable Long id,
             @Valid @RequestBody PositionDTO dto) {
         Position existing = positionService.findById(id);
-        existing.setTitle(dto.getTitle());
-        Position updated = positionService.save(existing);
-        return ResponseEntity.ok(updated);
+        Position updated = positionMapper.toEntity(dto);
+        updated.setId(existing.getId());
+
+        Position result = positionService.save(updated);
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")

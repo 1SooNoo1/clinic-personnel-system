@@ -28,5 +28,5 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         .roles(user.getRoles().split(","))
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
-}
+    }
 }

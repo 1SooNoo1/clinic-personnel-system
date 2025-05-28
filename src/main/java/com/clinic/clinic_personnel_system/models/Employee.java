@@ -22,11 +22,11 @@ public class Employee {
     private LocalDate birthDate;
 
     @ManyToOne
-    @JoinColumn(name = "department_id")
+    @JoinColumn(name = "department_id", referencedColumnName = "id")
     private Department department;
 
     @ManyToOne
-    @JoinColumn(name = "position_id")
+    @JoinColumn(name = "position_id", referencedColumnName = "id")
     private Position position;
 
     @Column(name = "employment_date")
@@ -39,6 +39,9 @@ public class Employee {
 
     // Геттеры и сеттеры (или используй Lombok: @Getter @Setter)
     public Long getId() { return id; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }

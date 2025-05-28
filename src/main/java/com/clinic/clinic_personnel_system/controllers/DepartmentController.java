@@ -1,8 +1,10 @@
 package com.clinic.clinic_personnel_system.controllers;
 
 import com.clinic.clinic_personnel_system.dto.DepartmentDTO;
+import com.clinic.clinic_personnel_system.mapper.DepartmentMapper;
 import com.clinic.clinic_personnel_system.models.Department;
 import com.clinic.clinic_personnel_system.services.DepartmentService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,10 +23,12 @@ import java.util.List;
 public class DepartmentController {
 
     private final DepartmentService service;
+    private final DepartmentMapper departmentMapper;
 
     @Autowired
-    public DepartmentController(DepartmentService service) {
+    public DepartmentController(DepartmentService service, DepartmentMapper departmentMapper) {
         this.service = service;
+        this.departmentMapper = departmentMapper;
     }
 
     @GetMapping
@@ -37,8 +41,7 @@ public class DepartmentController {
     @Operation(summary = "Добавить новое отделение")
     @ApiResponse(responseCode = "201", description = "Отделение успешно создано")
     public ResponseEntity<Department> createDepartment(@Valid @RequestBody DepartmentDTO dto) {
-        Department department = new Department();
-        department.setName(dto.getName());
+        Department department = departmentMapper.toEntity(dto);
         Department saved = service.save(department);
         return ResponseEntity.status(201).body(saved);
     }
@@ -49,9 +52,14 @@ public class DepartmentController {
             @Parameter(description = "ID отделения") @PathVariable Long id,
             @Valid @RequestBody DepartmentDTO dto) {
         Department existing = service.findById(id);
-        existing.setName(dto.getName());
-        Department updated = service.save(existing);
-        return ResponseEntity.ok(updated);
+
+        // Обновляем только имя отделения (остальные поля не нужны)
+        Department updated = departmentMapper.toEntity(dto);
+        updated.setId(existing.getId()); // сохраняем ID
+        updated.setEmployees(existing.getEmployees()); // сохраняем связи
+
+        Department saved = service.save(updated);
+        return ResponseEntity.ok(saved);
     }
 
     @DeleteMapping("/{id}")

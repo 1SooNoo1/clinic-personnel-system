@@ -43,26 +43,39 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Employee saveEmployee(Employee employee) {
+        if (employee.getDepartment() != null && departmentService.findById(employee.getDepartment().getId()) == null) {
+            throw new RuntimeException("Указанного отделения не существует");
+        }
+        if (employee.getPosition() != null && positionService.findById(employee.getPosition().getId()) == null) {
+            throw new RuntimeException("Указанной должности не существует");
+        }
         return employeeRepository.save(employee);
     }
 
     @Override
     public Employee updateEmployee(Long id, Employee employee) {
-        Optional<Employee> existing = employeeRepository.findById(id);
-        if (existing.isEmpty()) return null;
+        Employee existing = employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
 
-        Employee emp = existing.get();
-        emp.setFullName(employee.getFullName());
-        emp.setEmail(employee.getEmail());
-        emp.setPhone(employee.getPhone());
-        emp.setBirthDate(employee.getBirthDate());
-        emp.setDepartment(employee.getDepartment());
-        emp.setPosition(employee.getPosition());
-        emp.setEmploymentDate(employee.getEmploymentDate());
-        emp.setDismissalDate(employee.getDismissalDate());
-        emp.setActive(employee.getActive());
+        existing.setFullName(employee.getFullName());
+        existing.setEmail(employee.getEmail());
+        existing.setPhone(employee.getPhone());
+        existing.setBirthDate(employee.getBirthDate());
+        existing.setEmploymentDate(employee.getEmploymentDate());
+        existing.setDismissalDate(employee.getDismissalDate());
+        existing.setActive(employee.getActive());
 
-        return employeeRepository.save(emp);
+        if (employee.getDepartment() != null) {
+            Department department = departmentService.findById(employee.getDepartment().getId());
+            existing.setDepartment(department);
+        }
+
+        if (employee.getPosition() != null) {
+            Position position = positionService.findById(employee.getPosition().getId());
+            existing.setPosition(position);
+        }
+
+        return employeeRepository.save(existing);
     }
 
     @Override
@@ -70,7 +83,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.deleteById(id);
     }
 
-    // ➤ Перевод сотрудника на другое отделение и должность
     @Override
     public Employee transferEmployee(Long id, Long departmentId, Long positionId) {
         Employee employee = employeeRepository.findById(id)
@@ -85,7 +97,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.save(employee);
     }
 
-    // ➤ Увольнение: установка даты увольнения и отключение статуса
     @Override
     public Employee dismissEmployee(Long id, LocalDate dismissalDate) {
         Employee employee = employeeRepository.findById(id)

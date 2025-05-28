@@ -1,44 +1,42 @@
 package com.clinic.clinic_personnel_system.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
-import lombok.Data;
-
 import java.time.LocalDate;
 
-@Data
-@Schema(description = "DTO для сотрудника")
 public class EmployeeDTO {
-
-    @NotBlank(message = "Имя сотрудника обязательно")
-    @Schema(example = "Иван Иванов", description = "Полное имя сотрудника")
     private String fullName;
-
-    @NotBlank(message = "Email обязателен")
-    @Email(message = "Email должен быть корректным")
-    @Schema(example = "ivan@example.com", description = "Email сотрудника")
     private String email;
-
-    @Schema(example = "+79991234567", description = "Телефон")
     private String phone;
-
-    @Past(message = "Дата рождения должна быть в прошлом")
-    @Schema(example = "1980-01-01", description = "Дата рождения")
     private LocalDate birthDate;
-
-    @PastOrPresent(message = "Дата трудоустройства не может быть в будущем")
-    @Schema(example = "2020-01-01", description = "Дата трудоустройства")
     private LocalDate employmentDate;
-
-    @Schema(example = "null", description = "Дата увольнения")
     private LocalDate dismissalDate;
-
-    @Schema(example = "true", description = "Статус активности")
     private Boolean active = true;
-
-    @Schema(description = "ID отделения")
     private Long departmentId;
-
-    @Schema(description = "ID должности")
     private Long positionId;
+
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public LocalDate getBirthDate() { return birthDate; }
+    public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
+
+    public LocalDate getEmploymentDate() { return employmentDate; }
+    public void setEmploymentDate(LocalDate employmentDate) { this.employmentDate = employmentDate; }
+
+    public LocalDate getDismissalDate() { return dismissalDate; }
+    public void setDismissalDate(LocalDate dismissalDate) { this.dismissalDate = dismissalDate; }
+
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
+
+    public Long getDepartmentId() { return departmentId; }
+    public void setDepartmentId(Long departmentId) { this.departmentId = departmentId; }
+
+    public Long getPositionId() { return positionId; }
+    public void setPositionId(Long positionId) { this.positionId = positionId; }
 }
