@@ -1,0 +1,19 @@
+package com.clinic.clinic_personnel_system.models;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "positions")
+public class Position {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String title;
+
+    
+    public Long getId() { return id; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+}
