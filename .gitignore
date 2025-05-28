@@ -22,7 +22,7 @@ target/
 .env
 application-local.properties
 src/main/resources/data.sql
-application.properties
+*.properties
 
 ### IntelliJ IDEA ###
 .idea
