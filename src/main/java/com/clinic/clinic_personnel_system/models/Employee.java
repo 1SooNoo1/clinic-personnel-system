@@ -3,6 +3,8 @@ package com.clinic.clinic_personnel_system.models;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "employees")
 public class Employee {
@@ -23,7 +25,9 @@ public class Employee {
 
     @ManyToOne
     @JoinColumn(name = "department_id", referencedColumnName = "id")
+    @JsonBackReference
     private Department department;
+
 
     @ManyToOne
     @JoinColumn(name = "position_id", referencedColumnName = "id")

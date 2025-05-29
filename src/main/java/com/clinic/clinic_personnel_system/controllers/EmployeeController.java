@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -58,16 +59,19 @@ public class EmployeeController {
 
     @GetMapping
     @Operation(summary = "Получить всех сотрудников")
-    public List<Employee> getAllEmployees() {
-        return employeeService.getAllEmployees();
+        public ResponseEntity<List<EmployeeDTO>> getAllEmployees() {
+        List<EmployeeDTO> list = employeeService.getAllEmployees().stream()
+            .map(employeeMapper::toDto)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(list);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить сотрудника по ID")
-    public ResponseEntity<Employee> getEmployeeById(
-            @Parameter(description = "ID сотрудника") @PathVariable Long id) {
-        return ResponseEntity.ok(employeeService.getEmployeeById(id)
-                .orElseThrow(() -> new RuntimeException("Сотрудник не найден")));
+    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id) {
+        Employee employee = employeeService.getEmployeeById(id)
+                .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
+        return ResponseEntity.ok(employeeMapper.toDto(employee));
     }
 
     @PostMapping

@@ -3,6 +3,8 @@ package com.clinic.clinic_personnel_system.models;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 @Table(name = "departments")
 public class Department {
@@ -15,6 +17,7 @@ public class Department {
 
     // Связь с сотрудниками
     @OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<Employee> employees;
 
     // Геттеры / Сеттеры
