@@ -4,9 +4,6 @@ import com.clinic.clinic_personnel_system.models.Department;
 import com.clinic.clinic_personnel_system.models.Employee;
 import com.clinic.clinic_personnel_system.models.Position;
 import com.clinic.clinic_personnel_system.repositories.EmployeeRepository;
-import com.clinic.clinic_personnel_system.services.DepartmentService;
-import com.clinic.clinic_personnel_system.services.EmployeeService;
-import com.clinic.clinic_personnel_system.services.PositionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +11,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@SuppressWarnings("unused")
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
@@ -46,7 +42,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (employee.getDepartment() != null && departmentService.findById(employee.getDepartment().getId()) == null) {
             throw new RuntimeException("Указанного отделения не существует");
         }
-        if (employee.getPosition() != null && positionService.findById(employee.getPosition().getId()) == null) {
+        if (employee.getPosition() != null && positionService.getPositionById(employee.getPosition().getId()) == null) {
             throw new RuntimeException("Указанной должности не существует");
         }
         return employeeRepository.save(employee);
@@ -71,7 +67,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         if (employee.getPosition() != null) {
-            Position position = positionService.findById(employee.getPosition().getId());
+            Position position = positionService.getPositionById(employee.getPosition().getId());
             existing.setPosition(position);
         }
 
@@ -89,7 +85,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
 
         Department department = departmentService.findById(departmentId);
-        Position position = positionService.findById(positionId);
+        Position position = positionService.getPositionById(positionId);
 
         employee.setDepartment(department);
         employee.setPosition(position);

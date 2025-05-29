@@ -37,11 +37,9 @@ public class Employee {
 
     private Boolean active = true;
 
-    // Геттеры и сеттеры (или используй Lombok: @Getter @Setter)
+    // Геттеры и сеттеры
     public Long getId() { return id; }
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public void setId(Long id) { this.id = id; }
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
@@ -69,6 +67,4 @@ public class Employee {
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
-
-
 }

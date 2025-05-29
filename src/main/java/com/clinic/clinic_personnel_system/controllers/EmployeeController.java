@@ -74,107 +74,101 @@ public class EmployeeController {
     @Operation(summary = "Добавить нового сотрудника")
     @ApiResponse(responseCode = "201", description = "Сотрудник успешно создан")
     public ResponseEntity<Employee> createEmployee(@Valid @RequestBody EmployeeDTO dto) {
-        Employee employee = employeeMapper.toEntity(dto);
-
-        if (dto.getDepartmentId() != null) {
-            Department department = departmentService.findById(dto.getDepartmentId());
-            employee.setDepartment(department);
-        }
-
-        if (dto.getPositionId() != null) {
-            Position position = positionService.findById(dto.getPositionId());
-            employee.setPosition(position);
-        }
-
-        Employee saved = employeeService.saveEmployee(employee);
-        return ResponseEntity.status(201).body(saved);
+        
+    Employee employee = employeeMapper.toEntity(dto);
+    
+    if (dto.getDepartmentId() != null) {
+        Department department = departmentService.findById(dto.getDepartmentId());
+        employee.setDepartment(department);
+    }
+    if (dto.getPositionId() != null) {
+        Position position = positionService.getPositionById(dto.getPositionId());
+        employee.setPosition(position);
     }
 
+    Employee saved = employeeService.saveEmployee(employee);
+    return ResponseEntity.status(201).body(saved);
+}
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить данные сотрудника")
     public ResponseEntity<Employee> updateEmployee(
             @PathVariable Long id,
             @RequestBody EmployeeDTO dto) {
-        
+
         Employee existing = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
 
-        employeeMapper.updateFromDto(dto, existing); 
+        employeeMapper.updateFromDto(dto, existing);
 
         if (dto.getDepartmentId() != null) {
             existing.setDepartment(departmentService.findById(dto.getDepartmentId()));
         }
 
         if (dto.getPositionId() != null) {
-            existing.setPosition(positionService.findById(dto.getPositionId()));
+            existing.setPosition(positionService.getPositionById(dto.getPositionId()));
         }
 
-        return ResponseEntity.ok(employeeRepository.save(existing));
+        Employee updated = employeeService.saveEmployee(existing);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить сотрудника по ID")
+    @Operation(summary = "Удалить сотрудника")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ➤ Перевод сотрудника
     @PutMapping("/{id}/transfer")
+    @Operation(summary = "Перевести сотрудника в другое отделение и/или должность")
     public ResponseEntity<Employee> transferEmployee(
             @PathVariable Long id,
             @RequestParam Long departmentId,
             @RequestParam Long positionId) {
-        Employee updated = employeeService.transferEmployee(id, departmentId, positionId);
-        return ResponseEntity.ok(updated);
+        Employee transferred = employeeService.transferEmployee(id, departmentId, positionId);
+        return ResponseEntity.ok(transferred);
     }
 
-    // ➤ Увольнение сотрудника
     @PutMapping("/{id}/dismiss")
+    @Operation(summary = "Уволить сотрудника")
     public ResponseEntity<Employee> dismissEmployee(
             @PathVariable Long id,
             @RequestParam LocalDate dismissalDate) {
-        Employee updated = employeeService.dismissEmployee(id, dismissalDate);
-        return ResponseEntity.ok(updated);
+        Employee dismissed = employeeService.dismissEmployee(id, dismissalDate);
+        return ResponseEntity.ok(dismissed);
     }
 
-    // ➤ Экспорт трудовой книжки
-    @GetMapping("/{id}/labor-book")
-    public ResponseEntity<ByteArrayResource> exportLaborBook(@PathVariable Long id) throws Exception {
-        Employee employee = employeeService.getEmployeeById(id)
-                .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
+    @GetMapping("/export/pdf")
+    @Operation(summary = "Экспорт списка сотрудников в PDF")
+    public ResponseEntity<ByteArrayResource> exportToPdf() {
+        List<Employee> employees = employeeService.getAllEmployees();
 
-        byte[] pdfBytes = generateLaborBookPdf(employee);
-        ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PdfWriter writer = new PdfWriter(baos);
+        PdfDocument pdfDoc = new PdfDocument(writer);
+        Document document = new Document(pdfDoc);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=labor_book_" + id + ".pdf")
-                .contentType(MediaType.APPLICATION_PDF)
-                .contentLength(pdfBytes.length)
-                .body(resource);
-    }
+        document.add(new Paragraph("Список сотрудников клиники"));
 
-    private byte[] generateLaborBookPdf(Employee employee) throws Exception {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        PdfWriter writer = new PdfWriter(output);
-        PdfDocument pdf = new PdfDocument(writer);
-        Document document = new Document(pdf);
-
-        document.add(new Paragraph("Трудовая книжка").setBold().setFontSize(18));
-        document.add(new Paragraph("ФИО: " + employee.getFullName()));
-        document.add(new Paragraph("Email: " + employee.getEmail()));
-        document.add(new Paragraph("Телефон: " + employee.getPhone()));
-        document.add(new Paragraph("Дата рождения: " + employee.getBirthDate()));
-        document.add(new Paragraph("Дата устройства: " + employee.getEmploymentDate()));
-
-        if (employee.getDismissalDate() != null) {
-            document.add(new Paragraph("Дата увольнения: " + employee.getDismissalDate()));
-        } else {
-            document.add(new Paragraph("Статус: действующий"));
+        for (Employee emp : employees) {
+            String line = String.format("ID: %d, Имя: %s, Email: %s, Отделение: %s, Должность: %s",
+                    emp.getId(),
+                    emp.getFullName(),
+                    emp.getEmail(),
+                    emp.getDepartment() != null ? emp.getDepartment().getName() : "N/A",
+                    emp.getPosition() != null ? emp.getPosition().getTitle() : "N/A");
+            document.add(new Paragraph(line));
         }
 
         document.close();
-        return output.toByteArray();
+
+        ByteArrayResource resource = new ByteArrayResource(baos.toByteArray());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=employees.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(resource.contentLength())
+                .body(resource);
     }
 }

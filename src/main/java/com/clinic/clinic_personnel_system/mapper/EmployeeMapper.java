@@ -2,29 +2,28 @@ package com.clinic.clinic_personnel_system.mapper;
 
 import com.clinic.clinic_personnel_system.dto.EmployeeDTO;
 import com.clinic.clinic_personnel_system.models.Employee;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.springframework.stereotype.Component;
+import org.mapstruct.*;
 
-@Component
-@Mapper(
-    componentModel = "spring",
-    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
-)
+@Mapper(componentModel = "spring")
 public interface EmployeeMapper {
 
-    @Mapping(target = "department.id", source = "departmentId")
-    @Mapping(target = "position.id", source = "positionId")
-    Employee toEntity(EmployeeDTO dto);
-
-    @Mapping(source = "department.id", target = "departmentId")
-    @Mapping(source = "position.id", target = "positionId")
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "departmentId", source = "department.id")
+    @Mapping(target = "positionId", source = "position.id")
     EmployeeDTO toDto(Employee employee);
 
-    // ➤ Обновление существующей сущности
-    @Mapping(target = "department.id", source = "departmentId")
-    @Mapping(target = "position.id", source = "positionId")
-    void updateFromDto(EmployeeDTO dto, @MappingTarget Employee entity);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "department", ignore = true)
+    @Mapping(target = "position", ignore = true)
+    Employee toEntity(EmployeeDTO dto);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "department", ignore = true)
+    @Mapping(target = "position", ignore = true)
+    void updateFromDto(EmployeeDTO dto, @MappingTarget Employee employee);
+
+    @AfterMapping
+    default void linkDepartmentsAndPositions(@MappingTarget Employee employee, EmployeeDTO dto) {
+        // Для ручной подстановки department и position в сервисе
+    }
 }

@@ -7,6 +7,9 @@ import lombok.Data;
 @Data
 @Schema(description = "DTO для отделения")
 public class DepartmentDTO {
+    
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    private Long id; 
 
     @NotBlank(message = "Название отделения обязательно")
     @Schema(example = "Хирургия", description = "Название отделения")

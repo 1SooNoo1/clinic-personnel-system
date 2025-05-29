@@ -1,5 +1,6 @@
 package com.clinic.clinic_personnel_system.services;
 
+import com.clinic.clinic_personnel_system.dto.DepartmentDTO;
 import com.clinic.clinic_personnel_system.models.Department;
 import com.clinic.clinic_personnel_system.repositories.DepartmentRepository;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,12 @@ public class DepartmentService {
 
     public Department findById(Long id) {
         return departmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Отделение не найдено"));
+                .orElseThrow(() -> new RuntimeException("Отделение не найдено с ID: " + id));
+    }
+
+    public Department update(Long id, DepartmentDTO dto) {
+        Department existing = findById(id);
+        existing.setName(dto.getName());
+        return departmentRepository.save(existing);
     }
 }

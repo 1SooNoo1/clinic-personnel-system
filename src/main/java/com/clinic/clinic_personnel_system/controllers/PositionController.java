@@ -6,72 +6,58 @@ import com.clinic.clinic_personnel_system.models.Position;
 import com.clinic.clinic_personnel_system.services.PositionService;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/positions")
-@CrossOrigin(origins = "*")
-@Tag(name = "Должности", description = "CRUD операции для должностей клиники")
+@RequiredArgsConstructor
 public class PositionController {
 
     private final PositionService positionService;
     private final PositionMapper positionMapper;
 
-    @Autowired
-    public PositionController(PositionService positionService, PositionMapper positionMapper) {
-        this.positionService = positionService;
-        this.positionMapper = positionMapper;
-    }
-
     @GetMapping
-    @Operation(summary = "Получить все должности")
-    public List<Position> getAllPositions() {
-        return positionService.getAll();
-    }
-
-    @PostMapping
-    @Operation(summary = "Добавить новую должность")
-    @ApiResponse(responseCode = "201", description = "Должность успешно создана")
-    public ResponseEntity<Position> createPosition(@Valid @RequestBody PositionDTO dto) {
-        Position position = positionMapper.toEntity(dto);
-        Position saved = positionService.save(position);
-        return new ResponseEntity<>(saved, HttpStatus.CREATED);
+    @Operation(summary = "Получить список всех")
+    public ResponseEntity<List<PositionDTO>> getAllPositions() {
+        List<PositionDTO> positions = positionService.getAllPositions()
+                .stream()
+                .map(positionMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(positions);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Получить должность по ID")
-    public ResponseEntity<Position> getPositionById(
-            @Parameter(description = "ID должности") @PathVariable Long id) {
-        return ResponseEntity.ok(positionService.findById(id));
+    @Operation(summary = "Найти должность по ID")
+    public ResponseEntity<PositionDTO> getPositionById(@PathVariable Long id) {
+        Position position = positionService.getPositionById(id);
+        return ResponseEntity.ok(positionMapper.toDto(position));
+    }
+
+    @PostMapping
+    @Operation(summary = "Создать новую должность")
+    public ResponseEntity<PositionDTO> createPosition(@Valid @RequestBody PositionDTO positionDTO) {
+        Position position = positionMapper.toEntity(positionDTO);
+        Position saved = positionService.savePosition(position);
+        return ResponseEntity.ok(positionMapper.toDto(saved));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Обновить данные должности")
-    public ResponseEntity<Position> updatePosition(
-            @Parameter(description = "ID должности") @PathVariable Long id,
-            @Valid @RequestBody PositionDTO dto) {
-        Position existing = positionService.findById(id);
-        Position updated = positionMapper.toEntity(dto);
-        updated.setId(existing.getId());
-
-        Position result = positionService.save(updated);
-        return ResponseEntity.ok(result);
+    @Operation(summary = "Обновить данные о должности")
+    public ResponseEntity<PositionDTO> updatePosition(@PathVariable Long id, @Valid @RequestBody PositionDTO positionDTO) {
+        Position updated = positionService.updatePosition(id, positionDTO);
+        return ResponseEntity.ok(positionMapper.toDto(updated));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить должность по ID")
-    public ResponseEntity<Void> deletePosition(
-            @Parameter(description = "ID должности") @PathVariable Long id) {
-        positionService.delete(id);
+    @Operation(summary = "обновить должность")
+    public ResponseEntity<Void> deletePosition(@PathVariable Long id) {
+        positionService.deletePosition(id);
         return ResponseEntity.noContent().build();
     }
 }

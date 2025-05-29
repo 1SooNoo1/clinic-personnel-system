@@ -3,11 +3,14 @@ package com.clinic.clinic_personnel_system.mapper;
 import com.clinic.clinic_personnel_system.dto.PositionDTO;
 import com.clinic.clinic_personnel_system.models.Position;
 import org.mapstruct.Mapper;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapping;
 
-@Component
 @Mapper(componentModel = "spring")
 public interface PositionMapper {
-    Position toEntity(PositionDTO dto);
+
+    @Mapping(target = "id", source = "id")
     PositionDTO toDto(Position position);
-}
+
+    @Mapping(target = "id", ignore = true)
+    Position toEntity(PositionDTO dto);
+} 

@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/departments")
@@ -33,33 +34,30 @@ public class DepartmentController {
 
     @GetMapping
     @Operation(summary = "Получить все отделения")
-    public List<Department> getAllDepartments() {
-        return service.getAll();
+    public ResponseEntity<List<DepartmentDTO>> getAllDepartments() {
+        List<DepartmentDTO> list = service.getAll().stream()
+                .map(departmentMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(list);
     }
 
     @PostMapping
     @Operation(summary = "Добавить новое отделение")
     @ApiResponse(responseCode = "201", description = "Отделение успешно создано")
-    public ResponseEntity<Department> createDepartment(@Valid @RequestBody DepartmentDTO dto) {
+    public ResponseEntity<DepartmentDTO> createDepartment(@Valid @RequestBody DepartmentDTO dto) {
         Department department = departmentMapper.toEntity(dto);
         Department saved = service.save(department);
-        return ResponseEntity.status(201).body(saved);
+        return ResponseEntity.status(201).body(departmentMapper.toDto(saved));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить название отделения")
-    public ResponseEntity<Department> updateDepartment(
+    public ResponseEntity<DepartmentDTO> updateDepartment(
             @Parameter(description = "ID отделения") @PathVariable Long id,
             @Valid @RequestBody DepartmentDTO dto) {
-        Department existing = service.findById(id);
 
-        // Обновляем только имя отделения (остальные поля не нужны)
-        Department updated = departmentMapper.toEntity(dto);
-        updated.setId(existing.getId()); // сохраняем ID
-        updated.setEmployees(existing.getEmployees()); // сохраняем связи
-
-        Department saved = service.save(updated);
-        return ResponseEntity.ok(saved);
+        Department updated = service.update(id, dto);
+        return ResponseEntity.ok(departmentMapper.toDto(updated));
     }
 
     @DeleteMapping("/{id}")
