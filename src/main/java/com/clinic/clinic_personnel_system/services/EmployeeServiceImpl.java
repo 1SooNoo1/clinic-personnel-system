@@ -2,8 +2,10 @@ package com.clinic.clinic_personnel_system.services;
 
 import com.clinic.clinic_personnel_system.models.Department;
 import com.clinic.clinic_personnel_system.models.Employee;
+import com.clinic.clinic_personnel_system.models.EmploymentHistory;
 import com.clinic.clinic_personnel_system.models.Position;
 import com.clinic.clinic_personnel_system.repositories.EmployeeRepository;
+import com.clinic.clinic_personnel_system.repositories.EmploymentHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,14 +19,17 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final DepartmentService departmentService;
     private final PositionService positionService;
+    private final EmploymentHistoryRepository employmentHistoryRepository;
 
     @Autowired
     public EmployeeServiceImpl(EmployeeRepository employeeRepository,
                                DepartmentService departmentService,
-                               PositionService positionService) {
+                               PositionService positionService,
+                               EmploymentHistoryRepository employmentHistoryRepository) {
         this.employeeRepository = employeeRepository;
         this.departmentService = departmentService;
         this.positionService = positionService;
+        this.employmentHistoryRepository = employmentHistoryRepository;
     }
 
     @Override
@@ -45,7 +50,19 @@ public class EmployeeServiceImpl implements EmployeeService {
         if (employee.getPosition() != null && positionService.getPositionById(employee.getPosition().getId()) == null) {
             throw new RuntimeException("Указанной должности не существует");
         }
-        return employeeRepository.save(employee);
+
+        // Новый сотрудник — создаём историю
+        Employee saved = employeeRepository.save(employee);
+
+        EmploymentHistory newRecord = new EmploymentHistory();
+        newRecord.setEmployee(saved);
+        newRecord.setDepartment(saved.getDepartment());
+        newRecord.setPosition(saved.getPosition());
+        newRecord.setStartDate(saved.getEmploymentDate() != null ? saved.getEmploymentDate() : LocalDate.now());
+
+        employmentHistoryRepository.save(newRecord);
+
+        return saved;
     }
 
     @Override
@@ -87,6 +104,25 @@ public class EmployeeServiceImpl implements EmployeeService {
         Department department = departmentService.findById(departmentId);
         Position position = positionService.getPositionById(positionId);
 
+        // Закрываем текущую историю
+        List<EmploymentHistory> history = employmentHistoryRepository.findByEmployeeIdOrderByStartDateDesc(id);
+        if (!history.isEmpty()) {
+            EmploymentHistory current = history.get(0);
+            if (current.getEndDate() == null) {
+                current.setEndDate(LocalDate.now());
+                employmentHistoryRepository.save(current);
+            }
+        }
+
+        // Создаём новую запись истории
+        EmploymentHistory newRecord = new EmploymentHistory();
+        newRecord.setEmployee(employee);
+        newRecord.setDepartment(department);
+        newRecord.setPosition(position);
+        newRecord.setStartDate(LocalDate.now());
+        employmentHistoryRepository.save(newRecord);
+
+        // Обновляем активные поля сотрудника
         employee.setDepartment(department);
         employee.setPosition(position);
 
@@ -100,6 +136,16 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employee.setDismissalDate(dismissalDate);
         employee.setActive(false);
+
+        // Завершаем текущую историю
+        List<EmploymentHistory> history = employmentHistoryRepository.findByEmployeeIdOrderByStartDateDesc(id);
+        if (!history.isEmpty()) {
+            EmploymentHistory current = history.get(0);
+            if (current.getEndDate() == null) {
+                current.setEndDate(dismissalDate != null ? dismissalDate : LocalDate.now());
+                employmentHistoryRepository.save(current);
+            }
+        }
 
         return employeeRepository.save(employee);
     }
