@@ -1,16 +1,21 @@
 package com.clinic.clinic_personnel_system.controllers;
 
+import com.clinic.clinic_personnel_system.dto.EmployeeDTO;
 import com.clinic.clinic_personnel_system.dto.VacancyDTO;
+import com.clinic.clinic_personnel_system.mapper.EmployeeMapper;
 import com.clinic.clinic_personnel_system.mapper.VacancyMapper;
 import com.clinic.clinic_personnel_system.models.Department;
 import com.clinic.clinic_personnel_system.models.Position;
 import com.clinic.clinic_personnel_system.models.Vacancy;
 import com.clinic.clinic_personnel_system.services.DepartmentService;
 import com.clinic.clinic_personnel_system.services.PositionService;
+import com.clinic.clinic_personnel_system.services.VacancyAnalysisService;
 import com.clinic.clinic_personnel_system.services.VacancyService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,5 +84,21 @@ public class VacancyController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         vacancyService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @Autowired
+    private VacancyAnalysisService analysisService;
+
+    @Autowired
+    private EmployeeMapper employeeMapper;
+
+    @GetMapping("/{id}/candidates")
+    public ResponseEntity<List<EmployeeDTO>> getMatchingEmployees(@PathVariable Long id) {
+        List<EmployeeDTO> result = analysisService.findMatchingEmployees(id)
+                .stream()
+                .map(employeeMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(result);
     }
 }
