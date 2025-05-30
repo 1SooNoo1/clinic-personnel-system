@@ -16,10 +16,10 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +31,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/employees")
 @CrossOrigin(origins = "*")
@@ -59,10 +60,11 @@ public class EmployeeController {
 
     @GetMapping
     @Operation(summary = "Получить всех сотрудников")
-        public ResponseEntity<List<EmployeeDTO>> getAllEmployees() {
+    public ResponseEntity<List<EmployeeDTO>> getAllEmployees() {
+        log.info("Получение списка всех сотрудников");
         List<EmployeeDTO> list = employeeService.getAllEmployees().stream()
-            .map(employeeMapper::toDto)
-            .collect(Collectors.toList());
+                .map(employeeMapper::toDto)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(list);
     }
 
@@ -71,6 +73,7 @@ public class EmployeeController {
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id) {
         Employee employee = employeeService.getEmployeeById(id)
                 .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
+        log.info("Получен сотрудник с ID={}", id);
         return ResponseEntity.ok(employeeMapper.toDto(employee));
     }
 
@@ -78,21 +81,21 @@ public class EmployeeController {
     @Operation(summary = "Добавить нового сотрудника")
     @ApiResponse(responseCode = "201", description = "Сотрудник успешно создан")
     public ResponseEntity<Employee> createEmployee(@Valid @RequestBody EmployeeDTO dto) {
-        
-    Employee employee = employeeMapper.toEntity(dto);
-    
-    if (dto.getDepartmentId() != null) {
-        Department department = departmentService.findById(dto.getDepartmentId());
-        employee.setDepartment(department);
-    }
-    if (dto.getPositionId() != null) {
-        Position position = positionService.getPositionById(dto.getPositionId());
-        employee.setPosition(position);
-    }
+        Employee employee = employeeMapper.toEntity(dto);
 
-    Employee saved = employeeService.saveEmployee(employee);
-    return ResponseEntity.status(201).body(saved);
-}
+        if (dto.getDepartmentId() != null) {
+            Department department = departmentService.findById(dto.getDepartmentId());
+            employee.setDepartment(department);
+        }
+        if (dto.getPositionId() != null) {
+            Position position = positionService.getPositionById(dto.getPositionId());
+            employee.setPosition(position);
+        }
+
+        Employee saved = employeeService.saveEmployee(employee);
+        log.info("Создан новый сотрудник: {} (ID={})", saved.getFullName(), saved.getId());
+        return ResponseEntity.status(201).body(saved);
+    }
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить данные сотрудника")
@@ -114,6 +117,7 @@ public class EmployeeController {
         }
 
         Employee updated = employeeService.saveEmployee(existing);
+        log.info("Обновлены данные сотрудника ID={}", id);
         return ResponseEntity.ok(updated);
     }
 
@@ -121,6 +125,7 @@ public class EmployeeController {
     @Operation(summary = "Удалить сотрудника")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
+        log.warn("Сотрудник с ID={} удалён", id);
         return ResponseEntity.noContent().build();
     }
 
@@ -131,6 +136,7 @@ public class EmployeeController {
             @RequestParam Long departmentId,
             @RequestParam Long positionId) {
         Employee transferred = employeeService.transferEmployee(id, departmentId, positionId);
+        log.info("Сотрудник ID={} переведён в отделение ID={}, должность ID={}", id, departmentId, positionId);
         return ResponseEntity.ok(transferred);
     }
 
@@ -140,6 +146,7 @@ public class EmployeeController {
             @PathVariable Long id,
             @RequestParam LocalDate dismissalDate) {
         Employee dismissed = employeeService.dismissEmployee(id, dismissalDate);
+        log.info("Сотрудник ID={} уволен с датой {}", id, dismissalDate);
         return ResponseEntity.ok(dismissed);
     }
 
@@ -166,6 +173,8 @@ public class EmployeeController {
         }
 
         document.close();
+
+        log.info("Выполнен экспорт сотрудников в PDF ({} записей)", employees.size());
 
         ByteArrayResource resource = new ByteArrayResource(baos.toByteArray());
 

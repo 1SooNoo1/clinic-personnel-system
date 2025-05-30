@@ -6,6 +6,7 @@ import com.clinic.clinic_personnel_system.models.EmploymentHistory;
 import com.clinic.clinic_personnel_system.models.Position;
 import com.clinic.clinic_personnel_system.repositories.EmployeeRepository;
 import com.clinic.clinic_personnel_system.repositories.EmploymentHistoryRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
@@ -45,13 +47,14 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Employee saveEmployee(Employee employee) {
         if (employee.getDepartment() != null && departmentService.findById(employee.getDepartment().getId()) == null) {
+            log.warn("Попытка сохранить сотрудника с несуществующим отделением ID={}", employee.getDepartment().getId());
             throw new RuntimeException("Указанного отделения не существует");
         }
         if (employee.getPosition() != null && positionService.getPositionById(employee.getPosition().getId()) == null) {
+            log.warn("Попытка сохранить сотрудника с несуществующей должностью ID={}", employee.getPosition().getId());
             throw new RuntimeException("Указанной должности не существует");
         }
 
-        // Новый сотрудник — создаём историю
         Employee saved = employeeRepository.save(employee);
 
         EmploymentHistory newRecord = new EmploymentHistory();
@@ -59,9 +62,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         newRecord.setDepartment(saved.getDepartment());
         newRecord.setPosition(saved.getPosition());
         newRecord.setStartDate(saved.getEmploymentDate() != null ? saved.getEmploymentDate() : LocalDate.now());
-
         employmentHistoryRepository.save(newRecord);
 
+        log.info("Создан сотрудник: {} (ID={})", saved.getFullName(), saved.getId());
         return saved;
     }
 
@@ -88,12 +91,14 @@ public class EmployeeServiceImpl implements EmployeeService {
             existing.setPosition(position);
         }
 
+        log.info("Обновлены данные сотрудника ID={}", id);
         return employeeRepository.save(existing);
     }
 
     @Override
     public void deleteEmployee(Long id) {
         employeeRepository.deleteById(id);
+        log.warn("Удалён сотрудник ID={}", id);
     }
 
     @Override
@@ -104,7 +109,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         Department department = departmentService.findById(departmentId);
         Position position = positionService.getPositionById(positionId);
 
-        // Закрываем текущую историю
         List<EmploymentHistory> history = employmentHistoryRepository.findByEmployeeIdOrderByStartDateDesc(id);
         if (!history.isEmpty()) {
             EmploymentHistory current = history.get(0);
@@ -114,7 +118,6 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
         }
 
-        // Создаём новую запись истории
         EmploymentHistory newRecord = new EmploymentHistory();
         newRecord.setEmployee(employee);
         newRecord.setDepartment(department);
@@ -122,10 +125,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         newRecord.setStartDate(LocalDate.now());
         employmentHistoryRepository.save(newRecord);
 
-        // Обновляем активные поля сотрудника
         employee.setDepartment(department);
         employee.setPosition(position);
 
+        log.info("Сотрудник ID={} переведён в отделение ID={}, на должность ID={}", id, departmentId, positionId);
         return employeeRepository.save(employee);
     }
 
@@ -137,7 +140,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setDismissalDate(dismissalDate);
         employee.setActive(false);
 
-        // Завершаем текущую историю
         List<EmploymentHistory> history = employmentHistoryRepository.findByEmployeeIdOrderByStartDateDesc(id);
         if (!history.isEmpty()) {
             EmploymentHistory current = history.get(0);
@@ -147,6 +149,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
         }
 
+        log.info("Сотрудник ID={} уволен с датой {}", id, dismissalDate);
         return employeeRepository.save(employee);
     }
 }
