@@ -8,4 +8,5 @@ public class RegisterRequest {
     private String password;
     private String fullName;
     private String roles;
+    private Long employeeId; // может быть null, если это кандидат
 }

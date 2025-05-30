@@ -2,7 +2,9 @@ package com.clinic.clinic_personnel_system.controllers;
 
 import com.clinic.clinic_personnel_system.dto.LoginRequest;
 import com.clinic.clinic_personnel_system.dto.RegisterRequest;
+import com.clinic.clinic_personnel_system.models.Employee;
 import com.clinic.clinic_personnel_system.models.User;
+import com.clinic.clinic_personnel_system.repositories.EmployeeRepository;
 import com.clinic.clinic_personnel_system.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +19,15 @@ import java.util.Map;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthController(UserRepository userRepository,
+                          EmployeeRepository employeeRepository,
+                          PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -41,6 +47,12 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
         user.setRoles(request.getRoles());
+
+        if (request.getEmployeeId() != null) {
+            Employee employee = employeeRepository.findById(request.getEmployeeId())
+                    .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
+            user.setEmployee(employee);
+        }
 
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "Пользователь создан"));
