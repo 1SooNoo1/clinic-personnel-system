@@ -18,13 +18,12 @@ public class TestDataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (!userRepository.findByPhone("+79990000001").isPresent()) {
+        if (!userRepository.findByPhone("+79990000009").isPresent()) {
             User user = new User();
-            user.setPhone("+79990000001");
-            user.setPassword(passwordEncoder.encode("admin123"));
-            user.setFullName("Александр Иванов");
+            user.setPhone("+79990000009");
+            user.setPassword(passwordEncoder.encode("test123"));
+            user.setFullName("Тестовый Пользователь");
             user.setRoles("ROLE_ADMIN");
-
             userRepository.save(user);
             System.out.println("✅ Тестовый пользователь создан");
         }
