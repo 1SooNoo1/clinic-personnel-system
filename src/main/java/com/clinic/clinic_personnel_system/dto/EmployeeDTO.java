@@ -44,4 +44,8 @@ public class EmployeeDTO {
 
     @Schema(description = "ID должности")
     private Long positionId;
+
+    private DepartmentDTO department; 
+    private PositionDTO position;     
+
 }

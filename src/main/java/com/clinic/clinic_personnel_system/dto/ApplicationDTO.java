@@ -4,6 +4,8 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+import com.clinic.clinic_personnel_system.models.enums.ApplicationStatus;
+
 @Data
 public class ApplicationDTO {
     private Long id;
@@ -15,4 +17,6 @@ public class ApplicationDTO {
     private String positionTitle;
     private String message;
     private LocalDateTime createdAt;
+    private ApplicationStatus status;
+
 }

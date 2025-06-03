@@ -32,9 +32,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/api/profile/me").authenticated()
+                .requestMatchers("/api/history/**").hasAnyRole("ADMIN", "HR", "EMPLOYEE")
+                .requestMatchers("/api/employees/my/workbook/pdf").hasAnyRole("EMPLOYEE","HR", "ADMIN")
                 .requestMatchers("/api/employees/**").hasAnyRole("ADMIN", "HR")
                 .requestMatchers("/api/vacancies/**").hasAnyRole("ADMIN", "HR", "CANDIDATE", "EMPLOYEE")
-                .requestMatchers("/api/applications/**").hasAnyRole("ADMIN", "HR", "CANDIDATE")
+                .requestMatchers("/api/applications/**").hasAnyRole("ADMIN", "HR","EMPLOYEE", "CANDIDATE")
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

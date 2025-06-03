@@ -54,18 +54,15 @@ public class VacancyController {
 
     @PostMapping
     @Operation(summary = "Создание новой вакансии")
-    public ResponseEntity<VacancyDTO> create(@RequestParam Long departmentId,
-                                             @RequestParam Long positionId,
-                                             @RequestBody String description) {
-
-        Department department = departmentService.findById(departmentId);
-        Position position = positionService.getPositionById(positionId);
+    public ResponseEntity<VacancyDTO> create(@RequestBody VacancyDTO dto) {
+        Department department = departmentService.findById(dto.getDepartmentId());
+        Position position = positionService.getPositionById(dto.getPositionId());
 
         Vacancy vacancy = new Vacancy();
         vacancy.setDepartment(department);
         vacancy.setPosition(position);
-        vacancy.setDescription(description);
-        vacancy.setIsOpen(true);
+        vacancy.setDescription(dto.getDescription());
+        vacancy.setIsOpen(dto.getIsOpen() != null ? dto.getIsOpen() : true);
 
         Vacancy saved = vacancyService.create(vacancy);
         return ResponseEntity.status(201).body(vacancyMapper.toDto(saved));

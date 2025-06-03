@@ -5,9 +5,12 @@ import com.clinic.clinic_personnel_system.models.User;
 import com.clinic.clinic_personnel_system.models.Vacancy;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ApplicationService {
     Application apply(User user, Vacancy vacancy, String message);
     List<Application> getByUser(Long userId);
     List<Application> getByVacancy(Long vacancyId);
+    Optional<Application> getById(Long id);
+    Application save(Application app);
 }

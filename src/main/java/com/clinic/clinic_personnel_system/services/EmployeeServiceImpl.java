@@ -109,15 +109,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         Department department = departmentService.findById(departmentId);
         Position position = positionService.getPositionById(positionId);
 
-        List<EmploymentHistory> history = employmentHistoryRepository.findByEmployeeIdOrderByStartDateDesc(id);
-        if (!history.isEmpty()) {
-            EmploymentHistory current = history.get(0);
-            if (current.getEndDate() == null) {
-                current.setEndDate(LocalDate.now());
-                employmentHistoryRepository.save(current);
-            }
+        // Завершить последнюю активную запись
+        EmploymentHistory current = employmentHistoryRepository
+                .findFirstByEmployeeIdAndEndDateIsNullOrderByStartDateDesc(id);
+
+        if (current != null) {
+            current.setEndDate(LocalDate.now());
+            employmentHistoryRepository.save(current);
         }
 
+        // Создать новую запись
         EmploymentHistory newRecord = new EmploymentHistory();
         newRecord.setEmployee(employee);
         newRecord.setDepartment(department);
@@ -125,12 +126,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         newRecord.setStartDate(LocalDate.now());
         employmentHistoryRepository.save(newRecord);
 
+        // Обновить основные данные сотрудника
         employee.setDepartment(department);
         employee.setPosition(position);
 
         log.info("Сотрудник ID={} переведён в отделение ID={}, на должность ID={}", id, departmentId, positionId);
         return employeeRepository.save(employee);
     }
+
 
     @Override
     public Employee dismissEmployee(Long id, LocalDate dismissalDate) {
@@ -140,11 +143,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setDismissalDate(dismissalDate);
         employee.setActive(false);
 
-        List<EmploymentHistory> history = employmentHistoryRepository.findByEmployeeIdOrderByStartDateDesc(id);
+        List<EmploymentHistory> history = employmentHistoryRepository.findByEmployeeIdOrderByStartDate(id);
         if (!history.isEmpty()) {
             EmploymentHistory current = history.get(0);
             if (current.getEndDate() == null) {
-                current.setEndDate(dismissalDate != null ? dismissalDate : LocalDate.now());
+                current.setEndDate(LocalDate.now());
                 employmentHistoryRepository.save(current);
             }
         }
@@ -152,4 +155,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         log.info("Сотрудник ID={} уволен с датой {}", id, dismissalDate);
         return employeeRepository.save(employee);
     }
+    @Override
+    public Employee save(Employee employee) {
+        return employeeRepository.save(employee);
+    }
+
 }

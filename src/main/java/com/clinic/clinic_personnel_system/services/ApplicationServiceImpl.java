@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,5 +37,15 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public List<Application> getByVacancy(Long vacancyId) {
         return repository.findByVacancyId(vacancyId);
+    }
+
+    @Override
+    public Optional<Application> getById(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    public Application save(Application app) {
+        return repository.save(app);
     }
 }

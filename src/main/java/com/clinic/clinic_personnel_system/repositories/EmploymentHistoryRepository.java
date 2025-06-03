@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface EmploymentHistoryRepository extends JpaRepository<EmploymentHistory, Long> {
-    List<EmploymentHistory> findByEmployeeIdOrderByStartDateDesc(Long employeeId);
+    List<EmploymentHistory> findByEmployeeIdOrderByStartDate(Long employeeId);
+    EmploymentHistory findFirstByEmployeeIdAndEndDateIsNullOrderByStartDateDesc(Long employeeId);
 }

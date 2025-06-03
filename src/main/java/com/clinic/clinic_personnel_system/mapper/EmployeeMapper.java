@@ -4,12 +4,13 @@ import com.clinic.clinic_personnel_system.dto.EmployeeDTO;
 import com.clinic.clinic_personnel_system.models.Employee;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {DepartmentMapper.class, PositionMapper.class})
 public interface EmployeeMapper {
 
-    @Mapping(target = "id", source = "id")
     @Mapping(target = "departmentId", source = "department.id")
     @Mapping(target = "positionId", source = "position.id")
+    @Mapping(target = "department", source = "department")
+    @Mapping(target = "position", source = "position")
     EmployeeDTO toDto(Employee employee);
 
     @Mapping(target = "id", ignore = true)

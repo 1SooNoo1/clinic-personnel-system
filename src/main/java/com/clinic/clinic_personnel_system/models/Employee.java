@@ -71,4 +71,11 @@ public class Employee {
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.employmentDate == null) {
+            this.employmentDate = LocalDate.now();
+        }
+    }
 }

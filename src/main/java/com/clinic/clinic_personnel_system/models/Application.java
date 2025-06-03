@@ -3,6 +3,8 @@ package com.clinic.clinic_personnel_system.models;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.clinic.clinic_personnel_system.models.enums.ApplicationStatus;
+
 @Entity
 @Table(name = "applications", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"user_id", "vacancy_id"})
@@ -23,6 +25,9 @@ public class Application {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Enumerated(EnumType.STRING)
+    private ApplicationStatus status = ApplicationStatus.NEW;
+
     // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -38,4 +43,8 @@ public class Application {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public ApplicationStatus getStatus() { return status; }
+    public void setStatus(ApplicationStatus status) { this.status = status; }
+
 }

@@ -15,4 +15,6 @@ public interface EmployeeService {
 
     Employee transferEmployee(Long id, Long departmentId, Long positionId);
     Employee dismissEmployee(Long id, LocalDate dismissalDate);
+    Employee save(Employee employee);
+
 }

@@ -14,5 +14,7 @@ public interface ApplicationMapper {
     @Mapping(target = "vacancyId", source = "vacancy.id")
     @Mapping(target = "departmentName", source = "vacancy.department.name")
     @Mapping(target = "positionTitle", source = "vacancy.position.title")
+    @Mapping(target = "status", source = "status")
+    @Mapping(target = "message", source = "message")
     ApplicationDTO toDto(Application application);
 }
