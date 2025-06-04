@@ -73,12 +73,14 @@ public class EmploymentHistoryController {
         Document document = new Document(pdfDoc);
         try {
             PdfFont font = PdfFontFactory.createFont("src/main/resources/fonts/Roboto-VariableFont_wdth,wght.ttf", PdfEncodings.IDENTITY_H);
-                    document.setFont(font);
-            } catch (IOException e) {
-                    e.printStackTrace(); // или логируй, или пробрось как RuntimeException
-                }
+            document.setFont(font);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         document.add(new Paragraph("Трудовая книжка сотрудника"));
+        document.add(new Paragraph("Место работы: 'ЫЫЫ' Клиника имени Крюковка"));
+        document.add(new Paragraph("Работодатель: Крюков Алексей Игоревич"));
         document.add(new Paragraph("ФИО: " + employee.getFullName()));
         document.add(new Paragraph("Email: " + employee.getEmail()));
         document.add(new Paragraph("Телефон: " + employee.getPhone()));
@@ -95,14 +97,21 @@ public class EmploymentHistoryController {
         table.addHeaderCell("Документ");
 
         int i = 1;
-        for (EmploymentHistory eh : historyList) {
+        for (int j = 0; j < historyList.size(); j++) {
+            EmploymentHistory eh = historyList.get(j);
             String info;
-            if (eh.getEndDate() != null && employee.getDismissalDate() != null && eh.getEndDate().equals(employee.getDismissalDate())) {
-                info = "Уволен";
-            } else if (eh.getEndDate() != null) {
-                info = "Переведен";
-            } else {
+
+            if (j == 0) {
                 info = "Принят";
+            } else if (
+                j == historyList.size() - 1 &&
+                employee.getDismissalDate() != null &&
+                eh.getEndDate() != null &&
+                eh.getEndDate().equals(employee.getDismissalDate())
+            ) {
+                info = "Уволен";
+            } else {
+                info = "Переведен";
             }
 
             table.addCell(String.valueOf(i++));
@@ -112,6 +121,7 @@ public class EmploymentHistoryController {
             table.addCell(eh.getDepartment().getName());
             table.addCell("Приказ");
         }
+
 
         document.add(table);
         document.close();
@@ -124,6 +134,8 @@ public class EmploymentHistoryController {
                 .contentLength(resource.contentLength())
                 .body(resource);
     }
+
+
 
     @PutMapping("/my/workbook/pdf")
     public ResponseEntity<ByteArrayResource> exportMyEmploymentHistoryToPdf(@AuthenticationPrincipal UserDetails userDetails) {

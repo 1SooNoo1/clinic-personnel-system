@@ -140,21 +140,35 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
 
+        // Обновляем статус сотрудника
         employee.setDismissalDate(dismissalDate);
         employee.setActive(false);
 
-        List<EmploymentHistory> history = employmentHistoryRepository.findByEmployeeIdOrderByStartDate(id);
-        if (!history.isEmpty()) {
-            EmploymentHistory current = history.get(0);
-            if (current.getEndDate() == null) {
-                current.setEndDate(LocalDate.now());
-                employmentHistoryRepository.save(current);
-            }
+        // Завершаем предыдущую активную запись
+        EmploymentHistory current = employmentHistoryRepository
+                .findFirstByEmployeeIdAndEndDateIsNullOrderByStartDateDesc(id);
+
+        if (current != null) {
+            current.setEndDate(dismissalDate != null ? dismissalDate : LocalDate.now());
+            employmentHistoryRepository.save(current);
         }
+
+        // Создаём новую запись об увольнении
+        EmploymentHistory dismissalRecord = new EmploymentHistory();
+        dismissalRecord.setEmployee(employee);
+        dismissalRecord.setDepartment(employee.getDepartment());
+        dismissalRecord.setPosition(employee.getPosition());
+        dismissalRecord.setStartDate(dismissalDate != null ? dismissalDate : LocalDate.now());
+        dismissalRecord.setEndDate(dismissalDate != null ? dismissalDate : LocalDate.now());
+
+        employmentHistoryRepository.save(dismissalRecord);
 
         log.info("Сотрудник ID={} уволен с датой {}", id, dismissalDate);
         return employeeRepository.save(employee);
     }
+
+
+
     @Override
     public Employee save(Employee employee) {
         return employeeRepository.save(employee);

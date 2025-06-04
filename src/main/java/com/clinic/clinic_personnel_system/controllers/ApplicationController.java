@@ -72,11 +72,9 @@ public class ApplicationController {
     public ResponseEntity<String> acceptApplication(@PathVariable Long id) {
         Application app = applicationService.getById(id)
                 .orElseThrow(() -> new RuntimeException("Отклик не найден"));
-
         if (app.getStatus() == ApplicationStatus.ACCEPTED) {
             throw new RuntimeException("Кандидат уже принят");
         }
-
         User user = app.getUser();
         if (user.getEmployee() != null) {
             throw new RuntimeException("Пользователь уже является сотрудником");
@@ -91,17 +89,18 @@ public class ApplicationController {
         emp.setEmploymentDate(LocalDate.now());
         emp.setActive(true);
 
-        employeeService.save(emp);
+        employeeService.saveEmployee(emp);
+
         user.setEmployee(emp);
         user.setRoles("EMPLOYEE");
+        userRepository.save(user);
 
         app.setStatus(ApplicationStatus.ACCEPTED);
-
         applicationService.save(app);
-        userRepository.save(user);
 
         return ResponseEntity.ok("Кандидат успешно принят и добавлен в сотрудники");
     }
+
     @PutMapping("/{id}/reject")
     @PreAuthorize("hasRole('HR') or hasRole('ADMIN')")
     public ResponseEntity<String> rejectApplication(@PathVariable Long id) {

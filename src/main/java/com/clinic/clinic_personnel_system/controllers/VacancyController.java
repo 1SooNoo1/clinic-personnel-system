@@ -71,17 +71,21 @@ public class VacancyController {
     @PutMapping("/{id}")
     @Operation(summary = "Обновить вакансию")
     public ResponseEntity<VacancyDTO> update(@PathVariable Long id,
-                                             @RequestBody Vacancy updatedData) {
-        Vacancy updated = vacancyService.update(id, updatedData);
+                                            @RequestBody VacancyDTO dto) {
+        Department department = departmentService.findById(dto.getDepartmentId());
+        Position position = positionService.getPositionById(dto.getPositionId());
+
+        Vacancy updatedVacancy = new Vacancy();
+        updatedVacancy.setId(id);
+        updatedVacancy.setDepartment(department);
+        updatedVacancy.setPosition(position);
+        updatedVacancy.setDescription(dto.getDescription());
+        updatedVacancy.setIsOpen(dto.getIsOpen());
+
+        Vacancy updated = vacancyService.update(id, updatedVacancy);
         return ResponseEntity.ok(vacancyMapper.toDto(updated));
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Закрыть вакансию")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        vacancyService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
 
 
     @Autowired
