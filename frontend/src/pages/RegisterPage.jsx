@@ -1,7 +1,7 @@
-// src/pages/RegisterPage.jsx
 import { useState } from "react";
 import axios from "../api/axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import '../index.css'; 
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export default function RegisterPage() {
         fullName: form.fullName,
         phone: form.phone,
         password: form.password,
-        roles: "CANDIDATE"
+        roles: ["CANDIDATE"]
       });
 
       // После регистрации — редирект на login
@@ -38,47 +38,48 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-100">
-      <div className="bg-white shadow p-6 rounded w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Регистрация</h2>
+    <div className="register-container">
+      <div className="register-card">
+        <h2 className="register-title">Регистрация</h2>
 
         <input
           type="text"
           placeholder="ФИО"
           value={form.fullName}
           onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-          className="w-full border p-2 mb-3"
+          className="register-input"
         />
         <input
           type="text"
           placeholder="Телефон"
           value={form.phone}
           onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          className="w-full border p-2 mb-3"
+          className="register-input"
         />
         <input
           type="password"
           placeholder="Пароль"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
-          className="w-full border p-2 mb-3"
+          className="register-input"
         />
         <input
           type="password"
           placeholder="Подтвердите пароль"
           value={form.confirmPassword}
           onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-          className="w-full border p-2 mb-4"
+          className="register-input"
         />
 
-        {error && <p className="text-red-500 mb-3">{error}</p>}
+        {error && <p className="register-error">{error}</p>}
 
-        <button
-          onClick={handleSubmit}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
+        <button className="register-button" onClick={handleSubmit}>
           Зарегистрироваться
         </button>
+
+        <Link to="/login" className="register-link">
+          Уже есть аккаунт? Войдите
+        </Link>
       </div>
     </div>
   );

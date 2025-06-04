@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
 import Header from "../components/Header";
+import '../index.css'; 
 
 export default function ApplicationsPage() {
   const [vacancies, setVacancies] = useState([]);
   const [selectedVacancyId, setSelectedVacancyId] = useState("");
   const [applications, setApplications] = useState([]);
-
 
   useEffect(() => {
     axios.get("/vacancies").then(res => setVacancies(res.data));
@@ -14,7 +14,8 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     if (selectedVacancyId) {
-      axios.get(`/applications/vacancy/${selectedVacancyId}`)
+      axios
+        .get(`/applications/vacancy/${selectedVacancyId}`)
         .then(res => setApplications(res.data))
         .catch(err => console.error("Ошибка загрузки откликов", err));
     }
@@ -43,13 +44,13 @@ export default function ApplicationsPage() {
   return (
     <div>
       <Header />
-      <main className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Отклики на вакансии</h1>
+      <main className="applications-container">
+        <h1 className="applications-title">Отклики на вакансии</h1>
 
         <select
           value={selectedVacancyId}
           onChange={(e) => setSelectedVacancyId(e.target.value)}
-          className="border p-2 mb-4"
+          className="vacancy-select"
         >
           <option value="">Выберите вакансию</option>
           {vacancies.map(v => (
@@ -60,41 +61,65 @@ export default function ApplicationsPage() {
         </select>
 
         {applications.length === 0 && selectedVacancyId && (
-          <p className="text-gray-500">Нет откликов на эту вакансию</p>
+          <p className="no-applications">Нет откликов на эту вакансию</p>
         )}
 
         {applications.length > 0 && (
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
+          <table className="applications-table">
+            <thead>
               <tr>
-                <th className="border p-2">Кандидат</th>
-                <th className="border p-2">Телефон</th>
-                <th className="border p-2">Сообщение</th>
-                <th className="border p-2">Дата</th>
-                <th className="border p-2">Статус</th>
-                <th className="border p-2">Действия</th>
+                <th>Кандидат</th>
+                <th>Телефон</th>
+                <th>Сообщение</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Действия</th>
               </tr>
             </thead>
             <tbody>
               {applications.map(app => (
-                <tr key={app.id} className="hover:bg-gray-50">
-                  <td className="border p-2">{app.userFullName}</td>
-                  <td className="border p-2">{app.userPhone}</td>
-                  <td className="border p-2">{app.message || "—"}</td>
-                  <td className="border p-2">{new Date(app.createdAt).toLocaleDateString()}</td>
-                  <td className="border p-2">{app.status}</td>
-                  <td className="border p-2 space-x-2">
+                <tr key={app.id}>
+                  <td>{app.userFullName}</td>
+                  <td>{app.userPhone}</td>
+                  <td>{app.message || "—"}</td>
+                  <td>{new Date(app.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <span
+                      className={`status-tag ${
+                        app.status === "NEW"
+                          ? "status-new"
+                          : app.status === "PENDING"
+                          ? "status-pending"
+                          : app.status === "ACCEPTED"
+                          ? "status-accepted"
+                          : "status-rejected"
+                      }`}
+                    >
+                      {app.status === "NEW"
+                        ? "Новый"
+                        : app.status === "PENDING"
+                        ? "В процессе"
+                        : app.status === "ACCEPTED"
+                        ? "Принят"
+                        : "Отклонен"}
+                    </span>
+                  </td>
+                  <td>
                     {(app.status === "PENDING" || app.status === "NEW") && (
-                      <>
+                      <div className="action-buttons">
                         <button
-                          className="text-green-600 hover:underline"
+                          className="action-button accept-button"
                           onClick={() => handleAccept(app.id)}
-                        >Принять</button>
+                        >
+                          Принять
+                        </button>
                         <button
-                          className="text-red-600 hover:underline"
+                          className="action-button reject-button"
                           onClick={() => handleReject(app.id)}
-                        >Отклонить</button>
-                      </>
+                        >
+                          Отклонить
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>

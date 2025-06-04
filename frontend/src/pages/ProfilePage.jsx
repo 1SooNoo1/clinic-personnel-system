@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
 import Header from "../components/Header";
+import '../index.css'; 
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -41,90 +42,95 @@ export default function ProfilePage() {
   return (
     <div>
       <Header />
-      <main className="p-6 max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Профиль сотрудника</h1>
+      <main className="profile-container">
+        <h1 className="profile-title">Профиль сотрудника</h1>
 
-        {!editMode ? (
-          <div className="space-y-2">
-            <p><strong>ФИО:</strong> {profile.fullName}</p>
-            <p><strong>Email:</strong> {profile.email}</p>
-            <p><strong>Телефон:</strong> {profile.phone}</p>
-            <p><strong>Дата рождения:</strong> {profile.birthDate || "—"}</p>
+        <div className="profile-card">
+          {!editMode ? (
+            <>
+              <div className="profile-info">
+                <div className="profile-field">
+                  <span className="profile-label">ФИО</span>
+                  <span className="profile-value">{profile.fullName}</span>
+                </div>
+                <div className="profile-field">
+                  <span className="profile-label">Email</span>
+                  <span className="profile-value">{profile.email}</span>
+                </div>
+                <div className="profile-field">
+                  <span className="profile-label">Телефон</span>
+                  <span className="profile-value">{profile.phone}</span>
+                </div>
+                <div className="profile-field">
+                  <span className="profile-label">Дата рождения</span>
+                  <span className="profile-value">{profile.birthDate || "—"}</span>
+                </div>
+              </div>
 
-            <button
-              onClick={() => setEditMode(true)}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              Редактировать
-            </button>
-            <button
-                onClick={async () => {
-                    try {
-                    const res = await axios.put(`/employees/my/workbook/pdf`, null, {
-                      responseType: "blob"
-                    });
-                    const url = window.URL.createObjectURL(new Blob([res.data]));
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.setAttribute("download", `workbook_${profile.id}.pdf`);
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
-                    } catch (err) {
-                    console.error("Ошибка при экспорте трудовой книжки", err);
-                    }
-                }}
-                className="mt-4 bg-gray-700 text-white px-4 py-2 rounded"
-                >
+              <button className="edit-button" onClick={() => setEditMode(true)}>
+                Редактировать
+              </button>
+
+              <button className="download-button mt-4" onClick={async () => {
+                try {
+                  const res = await axios.put(`/employees/my/workbook/pdf`, null, {
+                    responseType: "blob"
+                  });
+                  const url = window.URL.createObjectURL(new Blob([res.data]));
+                  const link = document.createElement("a");
+                  link.href = url;
+                  link.setAttribute("download", `workbook_${profile.id}.pdf`);
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                } catch (err) {
+                  console.error("Ошибка при экспорте трудовой книжки", err);
+                }
+              }}>
                 Скачать трудовую книжку (PDF)
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <input
-              type="text"
-              value={formData.fullName}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              placeholder="ФИО"
-              className="w-full border p-2"
-            />
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="Email"
-              className="w-full border p-2"
-            />
-            <input
-              type="text"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="Телефон"
-              className="w-full border p-2"
-            />
-            <input
-              type="date"
-              value={formData.birthDate}
-              onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-              className="w-full border p-2"
-            />
+              </button>
+            </>
+          ) : (
+            <div className="edit-form">
+              <input
+                type="text"
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                placeholder="ФИО"
+                className="edit-input"
+              />
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="Email"
+                className="edit-input"
+              />
+              <input
+                type="text"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="Телефон"
+                className="edit-input"
+              />
+              <input
+                type="date"
+                value={formData.birthDate}
+                onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                className="edit-input"
+              />
 
-            <div className="flex justify-between">
-              <button
-                onClick={() => setEditMode(false)}
-                className="text-gray-600 hover:underline"
-              >
-                Отмена
-              </button>
-              <button
-                onClick={handleSave}
-                className="bg-green-600 text-white px-4 py-2 rounded"
-              >
-                Сохранить
-              </button>
+              <div className="edit-actions">
+                <button className="edit-cancel" onClick={() => setEditMode(false)}>
+                  Отмена
+                </button>
+                <button className="edit-save" onClick={handleSave}>
+                  Сохранить
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
     </div>
   );

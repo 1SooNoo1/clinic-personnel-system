@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "../api/axios";
 import Header from "../components/Header";
 import { useAuth } from "../hooks/useAuth";
+import '../index.css'; 
 
 export default function VacanciesPage() {
   const [vacancies, setVacancies] = useState([]);
@@ -19,6 +21,8 @@ export default function VacanciesPage() {
   });
 
   const { roles } = useAuth();
+
+  const hasAnyRole = (...required) => required.some(r => roles.includes(r));
 
   const load = async () => {
     try {
@@ -66,55 +70,50 @@ export default function VacanciesPage() {
     }
   };
 
-
   return (
     <div>
       <Header />
-      <main className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Открытые вакансии</h1>
+      <main className="vacancies-container">
+        <h1 className="vacancies-title">Открытые вакансии</h1>
 
         <input
           type="text"
           placeholder="Поиск по описанию, отделению или должности"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 mb-4 w-full max-w-xl"
+          className="search-input"
         />
 
-        {(roles.includes("HR") || roles.includes("ADMIN")) && (
+        {(hasAnyRole("HR", "ADMIN")) && (
           <button
-            className="mb-4 bg-green-600 text-white px-4 py-2 rounded"
+            className="add-button"
             onClick={() => setShowModal(true)}
           >
             Добавить вакансию
           </button>
         )}
 
-        <table className="w-full border text-sm">
-          <thead className="bg-gray-100">
+        <table className="vacancies-table">
+          <thead>
             <tr>
-              <th className="border p-2">Отделение</th>
-              <th className="border p-2">Должность</th>
-              <th className="border p-2">Описание</th>
-              <th className="border p-2">Статус</th>
-              {(roles.includes("HR") || roles.includes("ADMIN")) && (
-                <th className="border p-2">Действия</th>
-              )}
+              <th>Отделение</th>
+              <th>Должность</th>
+              <th>Описание</th>
+              <th>Статус</th>
+              {(hasAnyRole("HR", "ADMIN")) && <th>Действия</th>}
             </tr>
           </thead>
           <tbody>
             {filtered.map((v) => (
-              <tr key={v.id} className="hover:bg-gray-50">
-                <td className="border p-2">{v.departmentName}</td>
-                <td className="border p-2">{v.positionTitle}</td>
-                <td className="border p-2">{v.description}</td>
-                <td className="border p-2">
-                  {v.isOpen ? "Открыта" : "Закрыта"}
-                </td>
-                {(roles.includes("HR") || roles.includes("ADMIN")) && (
-                  <td className="border p-2 space-x-2">
+              <tr key={v.id}>
+                <td>{v.departmentName}</td>
+                <td>{v.positionTitle}</td>
+                <td>{v.description}</td>
+                <td>{v.isOpen ? "Открыта" : "Закрыта"}</td>
+                {(hasAnyRole("HR", "ADMIN")) && (
+                  <td className="actions">
                     <button
-                      className="text-blue-600 hover:underline"
+                      className="action-button edit-button"
                       onClick={() => {
                         setEditId(v.id);
                         setForm({
@@ -128,15 +127,22 @@ export default function VacanciesPage() {
                     >
                       Редактировать
                     </button>
+
                     <button
-                      className="text-red-600 hover:underline"
+                      className="action-button delete-button"
                       onClick={async () => {
-                        await axios.delete(`/vacancies/${v.id}`);
-                        await load();
+                        if (window.confirm("Вы уверены, что хотите удалить эту вакансию?")) {
+                          await axios.delete(`/vacancies/${v.id}`);
+                          await load();
+                        }
                       }}
                     >
                       Удалить
                     </button>
+
+                    <Link to={`/vacancy/${v.id}/analysis`}>
+                      <button className="action-button analyze-button">Анализ</button>
+                    </Link>
                   </td>
                 )}
               </tr>
@@ -145,80 +151,69 @@ export default function VacanciesPage() {
         </table>
 
         {filtered.length === 0 && (
-          <p className="mt-4 text-gray-500">Вакансии не найдены</p>
+          <p className="no-results">Вакансии не найдены</p>
         )}
       </main>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded w-[400px]">
-            <h2 className="text-lg font-bold mb-4">
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 className="modal-title">
               {editId ? "Редактировать" : "Новая"} вакансия
             </h2>
 
             <select
               value={form.departmentId}
-              onChange={(e) =>
-                setForm({ ...form, departmentId: e.target.value })
-              }
-              className="w-full border p-2 mb-3"
+              onChange={(e) => setForm({ ...form, departmentId: e.target.value })}
+              className="modal-select"
             >
               <option value="">Выберите отделение</option>
               {departments.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
+                <option key={d.id} value={d.id}>{d.name}</option>
               ))}
             </select>
 
             <select
               value={form.positionId}
-              onChange={(e) =>
-                setForm({ ...form, positionId: e.target.value })
-              }
-              className="w-full border p-2 mb-3"
+              onChange={(e) => setForm({ ...form, positionId: e.target.value })}
+              className="modal-select"
             >
               <option value="">Выберите должность</option>
               {positions.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
-                </option>
+                <option key={p.id} value={p.id}>{p.title}</option>
               ))}
             </select>
 
             <textarea
               placeholder="Описание вакансии"
               value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              className="w-full border p-2 mb-3"
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="modal-textarea"
+              rows="4"
             />
 
-            <label className="flex items-center gap-2 mb-3">
+            <label className="checkbox-label">
               <input
                 type="checkbox"
                 checked={form.isOpen}
-                onChange={(e) =>
-                  setForm({ ...form, isOpen: e.target.checked })
-                }
-              />{" "}
+                onChange={(e) => setForm({ ...form, isOpen: e.target.checked })}
+              />
               Вакансия открыта
             </label>
 
-            <div className="flex justify-between">
+            <div className="modal-actions">
               <button
                 onClick={() => {
                   setShowModal(false);
                   setEditId(null);
                 }}
-                className="text-gray-600 hover:underline"
+                className="modal-cancel"
               >
                 Отмена
               </button>
               <button
                 onClick={handleSubmit}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="modal-save"
               >
                 Сохранить
               </button>

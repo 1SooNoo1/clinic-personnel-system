@@ -11,6 +11,7 @@ import MyApplicationsPage from "./pages/MyApplicationsPage";
 import RegisterPage from "./pages/RegisterPage";
 import DepartmentsPage from "./pages/DepartmentsPage";
 import PositionsPage from "./pages/PositionsPage";
+import VacancyAnalysisPage from "./pages/VacancyAnalysisPage";
 
 
 function App() {
@@ -41,6 +42,16 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
+        <Route
+          path="/vacancy/:id/analysis"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "HR"]}>
+              <VacancyAnalysisPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/applications" element={
           <ProtectedRoute allowedRoles={["ADMIN", "HR"]}>
             <ApplicationsPage />

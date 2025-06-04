@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "../api/axios";
 import Header from "../components/Header";
+import '../index.css'; 
 
 export default function PositionsPage() {
   const [positions, setPositions] = useState([]);
@@ -9,8 +10,12 @@ export default function PositionsPage() {
   const [error, setError] = useState("");
 
   const loadPositions = async () => {
-    const res = await axios.get("/positions");
-    setPositions(res.data);
+    try {
+      const res = await axios.get("/positions");
+      setPositions(res.data);
+    } catch (err) {
+      console.error("Ошибка загрузки должностей", err);
+    }
   };
 
   useEffect(() => {
@@ -48,61 +53,68 @@ export default function PositionsPage() {
   return (
     <div>
       <Header />
-      <main className="max-w-2xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-4">Должности</h1>
+      <main className="positions-container">
+        <h1 className="positions-title">Должности</h1>
 
-        <div className="bg-white shadow p-4 rounded mb-6">
-          <h2 className="font-semibold mb-2">{editingId ? "Редактировать" : "Новая"} должность</h2>
+        <div className="position-form-card">
+          <h2 className="position-form-heading">
+            {editingId ? "Редактировать" : "Новая"} должность
+          </h2>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Название должности"
-            className="border p-2 w-full mb-2"
+            className="position-input"
           />
-          <div className="flex gap-2">
+
+          <div className="position-actions">
             <button
               onClick={handleSubmit}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
+              className="position-action-button position-save-button"
             >
               {editingId ? "Сохранить" : "Добавить"}
             </button>
+
             {editingId && (
               <button
                 onClick={() => {
                   setEditingId(null);
                   setTitle("");
                 }}
-                className="bg-gray-400 text-white px-4 py-2 rounded"
+                className="position-action-button position-cancel-button"
               >
                 Отмена
               </button>
             )}
           </div>
-          {error && <p className="text-red-600 mt-2">{error}</p>}
+
+          {error && (
+            <p className="position-error-message">{error}</p>
+          )}
         </div>
 
-        <table className="w-full border text-sm">
-          <thead className="bg-gray-100">
+        <table className="position-table">
+          <thead>
             <tr>
-              <th className="border p-2">Название</th>
-              <th className="border p-2 w-32">Действия</th>
+              <th>Название</th>
+              <th>Действия</th>
             </tr>
           </thead>
           <tbody>
             {positions.map((pos) => (
-              <tr key={pos.id} className="hover:bg-gray-50">
-                <td className="border p-2">{pos.title}</td>
-                <td className="border p-2 flex gap-2">
+              <tr key={pos.id}>
+                <td>{pos.title}</td>
+                <td className="position-table-actions">
                   <button
                     onClick={() => startEdit(pos)}
-                    className="text-blue-600 hover:underline"
+                    className="position-table-button position-table-edit"
                   >
                     Редактировать
                   </button>
                   <button
                     onClick={() => handleDelete(pos.id)}
-                    className="text-red-600 hover:underline"
+                    className="position-table-button position-table-delete"
                   >
                     Удалить
                   </button>

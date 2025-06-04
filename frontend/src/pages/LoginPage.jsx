@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "../api/axios";
 import { useNavigate, Link } from "react-router-dom";
 import { FiPhone, FiLock } from "react-icons/fi";
+import '../index.css'; 
 
 export default function LoginPage() {
   const [phone, setPhone] = useState("");
@@ -23,50 +24,47 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-100 via-white to-blue-100">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md space-y-4"
-      >
-        <h2 className="text-2xl font-bold text-center text-blue-700">Вход в систему</h2>
-        {error && <p className="text-red-500 text-center">{error}</p>}
+    <div className="login-container">
+      <form onSubmit={handleLogin} className="login-card">
+        <h2 className="login-title">Вход в систему</h2>
 
-        <div className="flex items-center border rounded px-3 py-2">
-          <FiPhone className="text-gray-400 mr-2" />
-          <input
-            type="text"
-            placeholder="Телефон"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="w-full outline-none"
-            required
-          />
+        {error && <div className="error-message">{error}</div>}
+
+        <div className="form-group">
+          <label className="label">Телефон</label>
+          <div className="input-wrapper">
+            <FiPhone className="input-icon" />
+            <input
+              type="text"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Введите телефон"
+              className="input-field"
+              required
+            />
+          </div>
         </div>
 
-        <div className="flex items-center border rounded px-3 py-2">
-          <FiLock className="text-gray-400 mr-2" />
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full outline-none"
-            required
-          />
+        <div className="form-group">
+          <label className="label">Пароль</label>
+          <div className="input-wrapper">
+            <FiLock className="input-icon" />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Введите пароль"
+              className="input-field"
+              required
+            />
+          </div>
         </div>
 
-        <button
-          type="submit"
-          className="w-full py-2 rounded bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold hover:opacity-90 transition"
-        >
-          Войти
-        </button>
+        <button type="submit" className="login-button">Войти</button>
 
-        <p className="text-sm text-center text-gray-600">
+        <p className="register-link">
           Нет аккаунта?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
-            Зарегистрироваться
-          </Link>
+          <Link to="/register">Зарегистрироваться</Link>
         </p>
       </form>
     </div>

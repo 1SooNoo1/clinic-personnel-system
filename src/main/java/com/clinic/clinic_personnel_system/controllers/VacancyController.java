@@ -5,6 +5,7 @@ import com.clinic.clinic_personnel_system.dto.VacancyDTO;
 import com.clinic.clinic_personnel_system.mapper.EmployeeMapper;
 import com.clinic.clinic_personnel_system.mapper.VacancyMapper;
 import com.clinic.clinic_personnel_system.models.Department;
+import com.clinic.clinic_personnel_system.models.Employee;
 import com.clinic.clinic_personnel_system.models.Position;
 import com.clinic.clinic_personnel_system.models.Vacancy;
 import com.clinic.clinic_personnel_system.services.DepartmentService;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +34,8 @@ public class VacancyController {
     private final DepartmentService departmentService;
     private final PositionService positionService;
     private final VacancyMapper vacancyMapper;
+    private final VacancyAnalysisService vacancyAnalysisService;
+
 
     @GetMapping
     @Operation(summary = "Получить список всех вакансий")
@@ -102,4 +106,15 @@ public class VacancyController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/{id}/analysis")
+    @PreAuthorize("hasRole('HR') or hasRole('ADMIN')")
+    public ResponseEntity<List<EmployeeDTO>> analyzeVacancy(@PathVariable Long id) {
+        List<Employee> employees = vacancyAnalysisService.findMatchingEmployees(id);
+        List<EmployeeDTO> dtos = employees.stream()
+            .map(employeeMapper::toDto)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
 }

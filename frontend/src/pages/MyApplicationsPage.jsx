@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "../api/axios";
 import Header from "../components/Header";
 import { useAuth } from "../hooks/useAuth";
+import '../index.css'; 
 
 export default function MyApplicationsPage() {
   const [applications, setApplications] = useState([]);
