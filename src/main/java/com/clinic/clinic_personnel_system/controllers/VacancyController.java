@@ -37,7 +37,7 @@ public class VacancyController {
     private final VacancyAnalysisService vacancyAnalysisService;
 
 
-    @GetMapping
+    @GetMapping(produces = "application/json; charset=UTF-8")
     @Operation(summary = "Получить список всех вакансий")
     public ResponseEntity<List<VacancyDTO>> getAll() {
         return ResponseEntity.ok(
@@ -46,6 +46,7 @@ public class VacancyController {
                         .collect(Collectors.toList())
         );
     }
+
 
     @GetMapping("/open")
     public ResponseEntity<List<VacancyDTO>> getOpen() {

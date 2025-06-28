@@ -140,11 +140,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
 
-        // Обновляем статус сотрудника
+        
         employee.setDismissalDate(dismissalDate);
         employee.setActive(false);
 
-        // Завершаем предыдущую активную запись
+        
         EmploymentHistory current = employmentHistoryRepository
                 .findFirstByEmployeeIdAndEndDateIsNullOrderByStartDateDesc(id);
 

@@ -39,6 +39,16 @@ application-local.properties
 src/main/resources/application.properties
 src/main/resources/data.sql
 
+mobile_app/
+telegram_bot/
+clinic_client/build/
+clinic_client/lib/
+clinic_client/linux/
+clinic_client/macos/
+clinic_client/test/
+clinic_client/windows/
+
 # Misc
 *.log
 HELP.md
+

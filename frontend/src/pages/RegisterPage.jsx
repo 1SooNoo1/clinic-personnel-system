@@ -26,7 +26,7 @@ export default function RegisterPage() {
         fullName: form.fullName,
         phone: form.phone,
         password: form.password,
-        roles: ["CANDIDATE"]
+        roles: "CANDIDATE"
       });
 
       // После регистрации — редирект на login
